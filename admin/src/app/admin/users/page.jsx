@@ -11,7 +11,8 @@ import {
   ArrowUp,
   ArrowDown,
   Users,
-  Loader2
+  Loader2,
+  X
 } from 'lucide-react';
 
 const UsersPage = () => {
@@ -382,16 +383,16 @@ const UsersPage = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex items-center justify-end space-x-2">
                         <button
-                          onClick={() => handleViewUser(user.id)}
-                          className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 p-1 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded"
+                          onClick={() => handleViewUser(user._id)}
+                          className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 p-1 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded cursor-pointer"
                           title="View User"
                         >
                           <Eye className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => openDeleteDialog(user)}
-                          disabled={deletingUserId === user.id}
-                          className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded disabled:opacity-50"
+                          disabled={deletingUserId === user._id}
+                          className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded disabled:opacity-50 cursor-pointer"
                           title="Delete User"
                         >
                           {deletingUserId === user.id ? (
@@ -430,7 +431,7 @@ const UsersPage = () => {
                   disabled={currentPage === totalPages}
                   className="p-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <ChrevronRight className="h-4 w-4" />
+                  <ChevronRight className="h-4 w-4" />
                 </button>
               </div>
             </div>
@@ -449,7 +450,7 @@ const UsersPage = () => {
                   onClick={() => setShowDeleteDialog(false)}
                   className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                 >
-                  <X className="h-5 w-5" />
+                  <X className="h-5 w-5 cursor-pointer" />
                 </button>
               </div>
               <p className="text-gray-600 dark:text-gray-400 mb-6">
@@ -458,14 +459,14 @@ const UsersPage = () => {
               <div className="flex justify-end space-x-3">
                 <button
                   onClick={() => setShowDeleteDialog(false)}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg"
+                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
-                  onClick={() => handleDeleteUser(userToDelete.id)}
+                  onClick={() => handleDeleteUser(userToDelete._id)}
                   disabled={deletingUserId === userToDelete?.id}
-                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg disabled:opacity-50 flex items-center space-x-2"
+                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg disabled:opacity-50 flex items-center space-x-2 cursor-pointer"
                 >
                   {deletingUserId === userToDelete?.id ? (
                     <>
