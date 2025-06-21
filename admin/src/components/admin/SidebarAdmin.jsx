@@ -104,10 +104,8 @@ const SidebarAdmin = ({ isOpen = true }) => {
       {/* Sidebar Header */}
       <div className="p-4 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-black dark:bg-white rounded-lg flex items-center justify-center">
-            <span className="text-white dark:text-black font-bold text-sm">P</span>
-          </div>
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white">Admin Panel</h2>
+          
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white">SuperAdmin </h2>
         </div>
       </div>
 

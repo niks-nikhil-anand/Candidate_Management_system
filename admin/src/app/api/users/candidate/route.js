@@ -50,3 +50,27 @@ export const POST = async (req) => {
     );
   }
 };
+
+
+export const GET = async () => {
+  try {
+    console.log("Connecting to database...");
+    await connectDB();
+    console.log("Database connected.");
+
+    const candidates = await userModels
+      .find({ role: "Candidate" })
+      .select("-password"); // Exclude password field
+
+    return NextResponse.json(
+      { message: "Candidates fetched successfully", candidates },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Error fetching candidates:", error.message);
+    return NextResponse.json(
+      { message: "Internal server error", error: error.message },
+      { status: 500 }
+    );
+  }
+};

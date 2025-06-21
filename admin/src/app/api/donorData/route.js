@@ -189,18 +189,22 @@ export async function POST(request) {
 
 export async function GET() {
   try {
-    console.log("[GET] /api/donors — Fetching paginated donor list");
-    await connectDB();
+    console.log("[GET] /api/donors — Fetching donor list");
+    console.log("Database is connecting")
+    await connectDB(); 
+    console.log("Database is connected")
 
     const donors = await donorDataModels.find();
+    console.log(donors)
 
-    return NextResponse.json({
-      donors,
-    });
+    return NextResponse.json(
+      { message: "Donors fetched successfully", donors },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("❌ Error fetching donor data:", error);
     return NextResponse.json(
-      { message: "Failed to fetch donor data" },
+      { message: "Failed to fetch donor data", error: error.message },
       { status: 500 }
     );
   }
