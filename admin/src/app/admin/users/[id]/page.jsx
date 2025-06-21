@@ -1,5 +1,5 @@
-"use client"
-import React, { useState, useEffect } from 'react';
+"use client";
+import React, { useState, useEffect } from "react";
 import {
   ArrowLeft,
   Edit,
@@ -15,70 +15,123 @@ import {
   Loader2,
   Trash2,
   Key,
-  AlertTriangle
-} from 'lucide-react';
+  AlertTriangle,
+  Monitor,
+  Smartphone,
+  Globe,
+  Cog,
+  ShieldAlert,
+  Code,
+  ChevronDown,
+} from "lucide-react";
 
 const UserDetailsPage = () => {
   const [userId, setUserId] = useState(null);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  
+
+  // Login details states
+  const [loginDetails, setLoginDetails] = useState([]);
+  const [loadingLoginDetails, setLoadingLoginDetails] = useState(false);
+  const [loginDetailsExpanded, setLoginDetailsExpanded] = useState(false);
+  const [loginPage, setLoginPage] = useState(1);
+  const [loginHasMore, setLoginHasMore] = useState(true);
+
   // Form states
   const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    role: '',
-    status: '',
-    password: ''
+    fullName: "",
+    email: "",
+    role: "",
+    status: "",
+    password: "",
   });
-  
+
   // Password visibility
   const [showPassword, setShowPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
-  
+
   // Delete confirmation
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  
+
   // Reset password states
   const [showResetDialog, setShowResetDialog] = useState(false);
   const [resettingPassword, setResettingPassword] = useState(false);
 
   // Fetch user details
- const fetchUser = async () => {
-  if (!userId) return;
+  const fetchUser = async () => {
+    if (!userId) return;
 
-  try {
-    setLoading(true);
-    const response = await fetch(`/api/users/${userId}`);
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/users/${userId}`);
 
-    if (!response.ok) {
-      throw new Error('Failed to fetch user details');
+      if (!response.ok) {
+        throw new Error("Failed to fetch user details");
+      }
+
+      const data = await response.json();
+      console.log(data);
+
+      setUser(data.data); // Correct
+      setFormData({
+        fullName: data.data.fullName,
+        email: data.data.email,
+        role: data.data.role,
+        status: data.data.status,
+        password: "", // leave empty
+      });
+      setError("");
+    } catch (err) {
+      setError("Failed to fetch user details");
+      console.error("Error fetching user:", err);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    const data = await response.json();
-    console.log(data);
+  // Fetch login details
+  const fetchLoginDetails = async (page = 1, append = false) => {
+    if (!userId) return;
 
-    setUser(data.data); // Correct
-    setFormData({
-      fullName: data.data.fullName,
-      email: data.data.email,
-      role: data.data.role,
-      status: data.data.status,
-      password: '', // leave empty
-    });
-    setError('');
-  } catch (err) {
-    setError('Failed to fetch user details');
-    console.error('Error fetching user:', err);
-  } finally {
-    setLoading(false);
-  }
-};
+    try {
+      setLoadingLoginDetails(true);
+      const response = await fetch(
+        `/api/auth/loginDetails/${userId}?page=${page}&limit=10`
+      );
 
+      if (!response.ok) {
+        throw new Error("Failed to fetch login details");
+      }
+
+      const data = await response.json();
+      console.log(data.data);
+      console.log(data.message);
+
+      if (append) {
+        setLoginDetails((prev) => [...prev, ...data.data]);
+      } else {
+        setLoginDetails(data.data);
+      }
+
+      setLoginHasMore(data.hasMore || false);
+      setLoginPage(page);
+    } catch (err) {
+      console.error("Error fetching login details:", err);
+    } finally {
+      setLoadingLoginDetails(false);
+    }
+  };
+
+  // Load more login details
+  const loadMoreLoginDetails = () => {
+    if (loginHasMore && !loadingLoginDetails) {
+      fetchLoginDetails(loginPage + 1, true);
+    }
+  };
 
   // Update user
   const handleSave = async () => {
@@ -88,34 +141,34 @@ const UserDetailsPage = () => {
         fullName: formData.fullName,
         email: formData.email,
         role: formData.role,
-        status: formData.status
+        status: formData.status,
       };
-      
+
       // Only include password if it's provided
       if (formData.password.trim()) {
         updateData.password = formData.password;
       }
-      
+
       const response = await fetch(`/api/users/${userId}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(updateData),
       });
-      
+
       if (!response.ok) {
-        throw new Error('Failed to update user');
+        throw new Error("Failed to update user");
       }
-      
+
       const data = await response.json();
       setUser(data.user);
       setEditing(false);
-      setFormData(prev => ({ ...prev, password: '' }));
-      setError('');
+      setFormData((prev) => ({ ...prev, password: "" }));
+      setError("");
     } catch (err) {
-      setError('Failed to update user');
-      console.error('Error updating user:', err);
+      setError("Failed to update user");
+      console.error("Error updating user:", err);
     } finally {
       setSaving(false);
     }
@@ -126,18 +179,18 @@ const UserDetailsPage = () => {
     try {
       setDeleting(true);
       const response = await fetch(`/api/users/${userId}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
-      
+
       if (!response.ok) {
-        throw new Error('Failed to delete user');
+        throw new Error("Failed to delete user");
       }
-      
+
       // Redirect to users list
-      window.location.href = '/admin/users';
+      window.location.href = "/admin/users";
     } catch (err) {
-      setError('Failed to delete user');
-      console.error('Error deleting user:', err);
+      setError("Failed to delete user");
+      console.error("Error deleting user:", err);
       setDeleting(false);
     }
   };
@@ -147,18 +200,18 @@ const UserDetailsPage = () => {
     try {
       setResettingPassword(true);
       const response = await fetch(`/api/users/${userId}/reset-password`, {
-        method: 'POST',
+        method: "POST",
       });
-      
+
       if (!response.ok) {
-        throw new Error('Failed to reset password');
+        throw new Error("Failed to reset password");
       }
-      
+
       setShowResetDialog(false);
       // You might want to show a success message here
     } catch (err) {
-      setError('Failed to reset password');
-      console.error('Error resetting password:', err);
+      setError("Failed to reset password");
+      console.error("Error resetting password:", err);
     } finally {
       setResettingPassword(false);
     }
@@ -166,48 +219,58 @@ const UserDetailsPage = () => {
 
   // Handle form input changes
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
   // Get status badge classes
   const getStatusBadgeClasses = (status) => {
     switch (status) {
-      case 'Active': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
-      case 'Pending': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
-      case 'inReview': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
-      case 'Blocked': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
+      case "Active":
+        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300";
+      case "Pending":
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300";
+      case "inReview":
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300";
+      case "Blocked":
+        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
+      default:
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300";
     }
   };
 
   // Get role badge classes
   const getRoleBadgeClasses = (role) => {
     switch (role) {
-      case 'SuperAdmin': return 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300';
-      case 'Manager': return 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300';
-      case 'Viewer': return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
-      case 'Candidate': return 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300';
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300';
+      case "SuperAdmin":
+        return "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300";
+      case "Manager":
+        return "bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-300";
+      case "Viewer":
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300";
+      case "Candidate":
+        return "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300";
+      default:
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300";
     }
   };
 
   // Format date
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   // Handle back navigation
   const handleBack = () => {
-    window.location.href = '/admin/users';
+    window.location.href = "/admin/users";
   };
 
   useEffect(() => {
@@ -228,7 +291,9 @@ const UserDetailsPage = () => {
       <div className="flex items-center justify-center min-h-screen bg-white dark:bg-gray-900">
         <div className="flex items-center space-x-2">
           <Loader2 className="h-8 w-8 animate-spin text-gray-600 dark:text-gray-400" />
-          <span className="text-lg text-gray-700 dark:text-gray-300">Loading user details...</span>
+          <span className="text-lg text-gray-700 dark:text-gray-300">
+            Loading user details...
+          </span>
         </div>
       </div>
     );
@@ -238,7 +303,9 @@ const UserDetailsPage = () => {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">User not found</h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+            User not found
+          </h2>
           <button
             onClick={handleBack}
             className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
@@ -268,15 +335,17 @@ const UserDetailsPage = () => {
               </div>
               <div>
                 <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                  {editing ? 'Edit User' : 'User Details'}
+                  {editing ? "Edit User" : "User Details"}
                 </h1>
                 <p className="text-gray-600 dark:text-gray-400">
-                  {editing ? 'Modify user information' : 'View and manage user information'}
+                  {editing
+                    ? "Modify user information"
+                    : "View and manage user information"}
                 </p>
               </div>
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-3">
             {!editing ? (
               <>
@@ -312,7 +381,7 @@ const UserDetailsPage = () => {
                       email: user.email,
                       role: user.role,
                       status: user.status,
-                      password: ''
+                      password: "",
                     });
                   }}
                   className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
@@ -330,7 +399,7 @@ const UserDetailsPage = () => {
                   ) : (
                     <Save className="h-4 w-4" />
                   )}
-                  <span>{saving ? 'Saving...' : 'Save Changes'}</span>
+                  <span>{saving ? "Saving..." : "Save Changes"}</span>
                 </button>
               </>
             )}
@@ -351,10 +420,12 @@ const UserDetailsPage = () => {
               User Information
             </h2>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              {editing ? 'Edit the user details below' : 'Basic information about the user'}
+              {editing
+                ? "Edit the user details below"
+                : "Basic information about the user"}
             </p>
           </div>
-          
+
           <div className="p-6 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Full Name */}
@@ -366,13 +437,17 @@ const UserDetailsPage = () => {
                   <input
                     type="text"
                     value={formData.fullName}
-                    onChange={(e) => handleInputChange('fullName', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("fullName", e.target.value)
+                    }
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 ) : (
                   <div className="flex items-center space-x-2 px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg">
                     <User className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                    <span className="text-gray-900 dark:text-white">{user.fullName}</span>
+                    <span className="text-gray-900 dark:text-white">
+                      {user.fullName}
+                    </span>
                   </div>
                 )}
               </div>
@@ -386,13 +461,15 @@ const UserDetailsPage = () => {
                   <input
                     type="email"
                     value={formData.email}
-                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    onChange={(e) => handleInputChange("email", e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
                 ) : (
                   <div className="flex items-center space-x-2 px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg">
                     <Mail className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                    <span className="text-gray-900 dark:text-white">{user.email}</span>
+                    <span className="text-gray-900 dark:text-white">
+                      {user.email}
+                    </span>
                   </div>
                 )}
               </div>
@@ -405,7 +482,7 @@ const UserDetailsPage = () => {
                 {editing ? (
                   <select
                     value={formData.role}
-                    onChange={(e) => handleInputChange('role', e.target.value)}
+                    onChange={(e) => handleInputChange("role", e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="Manager">Manager</option>
@@ -416,7 +493,11 @@ const UserDetailsPage = () => {
                 ) : (
                   <div className="flex items-center space-x-2 px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg">
                     <Shield className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRoleBadgeClasses(user.role)}`}>
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getRoleBadgeClasses(
+                        user.role
+                      )}`}
+                    >
                       {user.role}
                     </span>
                   </div>
@@ -431,7 +512,9 @@ const UserDetailsPage = () => {
                 {editing ? (
                   <select
                     value={formData.status}
-                    onChange={(e) => handleInputChange('status', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("status", e.target.value)
+                    }
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="Active">Active</option>
@@ -442,8 +525,12 @@ const UserDetailsPage = () => {
                 ) : (
                   <div className="flex items-center space-x-2 px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg">
                     <Clock className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadgeClasses(user.status)}`}>
-                      {user.status === 'inReview' ? 'In Review' : user.status}
+                    <span
+                      className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadgeClasses(
+                        user.status
+                      )}`}
+                    >
+                      {user.status === "inReview" ? "In Review" : user.status}
                     </span>
                   </div>
                 )}
@@ -460,7 +547,9 @@ const UserDetailsPage = () => {
                   <input
                     type={showNewPassword ? "text" : "password"}
                     value={formData.password}
-                    onChange={(e) => handleInputChange('password', e.target.value)}
+                    onChange={(e) =>
+                      handleInputChange("password", e.target.value)
+                    }
                     placeholder="Enter new password"
                     className="w-full px-3 py-2 pr-10 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   />
@@ -469,7 +558,11 @@ const UserDetailsPage = () => {
                     onClick={() => setShowNewPassword(!showNewPassword)}
                     className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
                   >
-                    {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showNewPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -483,7 +576,9 @@ const UserDetailsPage = () => {
                 </label>
                 <div className="flex items-center space-x-2 px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg">
                   <Calendar className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                  <span className="text-gray-900 dark:text-white">{formatDate(user.createdAt)}</span>
+                  <span className="text-gray-900 dark:text-white">
+                    {formatDate(user.createdAt)}
+                  </span>
                 </div>
               </div>
 
@@ -493,11 +588,206 @@ const UserDetailsPage = () => {
                 </label>
                 <div className="flex items-center space-x-2 px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg">
                   <Clock className="h-4 w-4 text-gray-500 dark:text-gray-400" />
-                  <span className="text-gray-900 dark:text-white">{formatDate(user.updatedAt)}</span>
+                  <span className="text-gray-900 dark:text-white">
+                    {formatDate(user.updatedAt)}
+                  </span>
                 </div>
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Login Activity Section */}
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+          <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Login Activity
+              </h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Comprehensive details of this user's recent login sessions.
+              </p>
+            </div>
+            <button
+              onClick={() => {
+                setLoginDetailsExpanded(!loginDetailsExpanded);
+                if (!loginDetailsExpanded && loginDetails.length === 0) {
+                  fetchLoginDetails(1);
+                }
+              }}
+              className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
+            >
+              {loginDetailsExpanded ? "Hide Logs" : "Show Logs"}
+            </button>
+          </div>
+
+          {loginDetailsExpanded && (
+            <div className="p-6">
+              {loadingLoginDetails ? (
+                <div className="flex items-center justify-center py-4">
+                  <Loader2 className="h-5 w-5 animate-spin text-gray-600 dark:text-gray-400" />
+                </div>
+              ) : loginDetails.length === 0 ? (
+                <p className="text-gray-600 dark:text-gray-400">
+                  No login records found.
+                </p>
+              ) : (
+                <div className="space-y-6">
+                  {loginDetails.map((login, index) => (
+                    <div
+                      key={login._id || index}
+                      className="bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg p-4"
+                    >
+                      {/* Header with Date and Total Logins */}
+                      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-4">
+                        <div className="flex items-center space-x-2">
+                          <Calendar className="h-5 w-5 text-blue-500 dark:text-blue-400" />
+                          <div>
+                            <span className="text-base font-medium text-gray-900 dark:text-white">
+                              {formatDate(login.createdAt)}
+                            </span>
+                            <span className="ml-2 text-sm text-gray-600 dark:text-gray-300">
+                              at{" "}
+                              {login.loginTime ||
+                                new Date(login.loginDate).toLocaleTimeString()}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2 mt-2 sm:mt-0">
+                          <div className="bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full text-xs font-medium">
+                            {login.totalLogins}{" "}
+                            {login.totalLogins === 1 ? "Login" : "Logins"}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Device and System Information */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                        <div className="flex items-center space-x-2">
+                          <Monitor className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                          <div>
+                            <span className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                              Device
+                            </span>
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">
+                              {login.device}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                          <Smartphone className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                          <div>
+                            <span className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                              OS
+                            </span>
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">
+                              {login.os}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                          <Globe className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                          <div>
+                            <span className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                              Browser
+                            </span>
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">
+                              {login.browser}{" "}
+                              {login.browserVersion &&
+                                `v${login.browserVersion}`}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Additional Technical Details */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div className="flex items-center space-x-2">
+                          <Eye className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                          <div>
+                            <span className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                              IP Address
+                            </span>
+                            <p className="text-sm font-medium text-gray-900 dark:text-white font-mono">
+                              {login.ip || "Unknown"}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center space-x-2">
+                          <Cog className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                          <div>
+                            <span className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                              Engine
+                            </span>
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">
+                              {login.engine}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Platform Information */}
+                      {login.platform && login.platform !== "Unknown" && (
+                        <div className="flex items-center space-x-2 mb-4">
+                          <ShieldAlert className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+                          <div>
+                            <span className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                              Platform
+                            </span>
+                            <p className="text-sm font-medium text-gray-900 dark:text-white">
+                              {login.platform}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* User Agent - Collapsible */}
+                      {login.userAgent && (
+                        <div className="border-t border-gray-200 dark:border-gray-600 pt-3">
+                          <details className="group">
+                            <summary className="flex items-center space-x-2 cursor-pointer text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide hover:text-gray-700 dark:hover:text-gray-300">
+                              <Code className="h-4 w-4" />
+                              <span>User Agent</span>
+                              <ChevronDown className="h-3 w-3 transition-transform group-open:rotate-180" />
+                            </summary>
+                            <div className="mt-2 p-3 bg-gray-100 dark:bg-gray-800 rounded border text-xs font-mono text-gray-700 dark:text-gray-300 break-all">
+                              {login.userAgent}
+                            </div>
+                          </details>
+                        </div>
+                      )}
+
+                      {/* Last Updated */}
+                      <div className="flex justify-end mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                          Last updated: {formatDate(login.updatedAt)}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+
+                  {loginHasMore && (
+                    <div className="flex justify-center pt-4">
+                      <button
+                        onClick={loadMoreLoginDetails}
+                        disabled={loadingLoginDetails}
+                        className="px-4 py-2 text-sm font-medium text-blue-700 dark:text-blue-300 bg-blue-100 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/30 transition-colors disabled:opacity-50"
+                      >
+                        {loadingLoginDetails ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          "Load More"
+                        )}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Reset Password Dialog */}
@@ -518,7 +808,9 @@ const UserDetailsPage = () => {
               <div className="flex items-start space-x-3 mb-6">
                 <AlertTriangle className="h-5 w-5 text-orange-500 mt-0.5" />
                 <p className="text-gray-600 dark:text-gray-400">
-                  This will send a password reset email to <strong>{user.email}</strong>. The user will need to click the link in the email to set a new password.
+                  This will send a password reset email to{" "}
+                  <strong>{user.email}</strong>. The user will need to click the
+                  link in the email to set a new password.
                 </p>
               </div>
               <div className="flex justify-end space-x-3">
@@ -565,7 +857,9 @@ const UserDetailsPage = () => {
               <div className="flex items-start space-x-3 mb-6">
                 <AlertTriangle className="h-5 w-5 text-red-500 mt-0.5" />
                 <p className="text-gray-600 dark:text-gray-400">
-                  Are you sure you want to delete <strong>{user.fullName}</strong>? This action cannot be undone and will permanently remove all user data.
+                  Are you sure you want to delete{" "}
+                  <strong>{user.fullName}</strong>? This action cannot be undone
+                  and will permanently remove all user data.
                 </p>
               </div>
               <div className="flex justify-end space-x-3">

@@ -4,7 +4,7 @@ import { cookies } from 'next/headers';
 export async function POST(req) {
   try {
     const cookieStore = cookies();
-    const authToken = cookieStore.get('adminAuthToken');
+    const authToken = await cookieStore.get('adminAuthToken');
     
     if (!authToken) {
       return NextResponse.json({ message: 'User not logged in' }, { status: 400 });
