@@ -84,7 +84,7 @@ const DonorPage = () => {
 
   // View donor
   const handleViewDonor = (donorId) => {
-    window.location.href = `/admin/donors/${donorId}`;
+    window.location.href = `/admin/donorData/${donorId}`;
   };
 
   // Sort donors
@@ -463,7 +463,7 @@ const DonorPage = () => {
                       <div className="flex items-center justify-end space-x-2">
                         <button
                           onClick={() => handleViewDonor(donor._id)}
-                          className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 p-1 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded"
+                          className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 p-1 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded cursor-pointer"
                           title="View Donor"
                         >
                           <Eye className="h-4 w-4" />
@@ -471,7 +471,7 @@ const DonorPage = () => {
                         <button
                           onClick={() => openDeleteDialog(donor)}
                           disabled={deletingDonorId === donor._id}
-                          className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded disabled:opacity-50"
+                          className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded disabled:opacity-50 cursor-pointer"
                           title="Delete Donor"
                         >
                           {deletingDonorId === donor._id ? (
